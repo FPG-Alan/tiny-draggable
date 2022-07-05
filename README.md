@@ -153,3 +153,10 @@ To run the example project locally, run the commands:
 cd example
 pnpm run dev
 ```
+
+# Test
+
+```
+pnpm run test
+
+```
