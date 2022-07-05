@@ -1,4 +1,4 @@
-import { makeDraggable } from "./core";
+import { makeDraggable, DRAGGABLE_FLAG } from "./core";
 import { createDragDom } from "./util";
 import type { DraggableOptions } from "./type";
 
@@ -107,4 +107,5 @@ function draggable(dom: HTMLElement, options: DraggableOptions = {}) {
   }
 }
 
+export { makeDraggable, DRAGGABLE_FLAG };
 export default draggable;
