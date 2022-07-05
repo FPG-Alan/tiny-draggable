@@ -144,3 +144,12 @@ function Example() {
   );
 }
 ```
+
+# Running example
+
+To run the example project locally, run the commands:
+
+```sh
+cd example
+pnpm run dev
+```
