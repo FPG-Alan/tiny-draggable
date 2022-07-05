@@ -6,13 +6,6 @@ const name = require("./package.json").main.replace(/\.js$/, "");
 const bundle = (config) => ({
   ...config,
   input: "src/index.ts",
-  external: (id) => {
-    // const result = !/^[./]/.test(id);
-    // console.log(id, result);
-    console.log(id);
-
-    return false;
-  },
 });
 
 export default [

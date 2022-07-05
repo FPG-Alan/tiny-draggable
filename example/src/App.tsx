@@ -6,7 +6,6 @@ function App() {
   const dragContextRef = useRef<DragContext | null>(null);
 
   useEffect(() => {
-    console.log("mount");
     if (domRef.current) {
       dragContextRef.current =
         draggable(domRef.current, { holdPosition: true }) ?? null;
