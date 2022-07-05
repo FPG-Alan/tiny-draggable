@@ -6,6 +6,7 @@ const name = require("./package.json").main.replace(/\.js$/, "");
 const bundle = (config) => ({
   ...config,
   input: "src/index.ts",
+  // todo: resolve problem about externals
 });
 
 export default [
