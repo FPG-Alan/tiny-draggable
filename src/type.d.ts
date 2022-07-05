@@ -5,13 +5,22 @@ export type DragData = {
   currentX: number;
   currentY: number;
 
-  dragTarget: HTMLElement;
   accRange: { x: [number, number]; y: [number, number] };
 
   [key: string]: unknown;
 };
 
-export type DraggableOptions = {
+export type DraggableCorOptions = {
+  /**
+   * disable drag on X axis
+   */
+  disable_x_axis?: boolean;
+  /**
+   * disable drag on Y axis
+   */
+  disable_y_axis?: boolean;
+};
+export type DraggableOptions = DraggableCorOptions & {
   /**
    * specific [dom / dom class name] which bind the drag event
    * dragHandler need be child of draggable dom

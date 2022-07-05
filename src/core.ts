@@ -1,4 +1,4 @@
-import type { DragData } from "./type";
+import type { DragData, DraggableCorOptions } from "./type";
 import { PubSubEvent } from "./util";
 
 export const DRAGGABLE_FLAG = "tiny-draggable";
@@ -14,11 +14,13 @@ const ContextPool: Record<string, DragContext> = {};
 let currentContext: DragContext | null = null;
 
 export class DragContext extends PubSubEvent {
+  public options: DraggableCorOptions;
   public state: DragData;
   public dragHandler: HTMLElement;
 
-  constructor(dragHandler: HTMLElement, dragTarget?: HTMLElement) {
+  constructor(dragHandler: HTMLElement, options: DraggableCorOptions) {
     super();
+    this.options = options;
     this.dragHandler = dragHandler;
 
     this.state = {
@@ -27,8 +29,6 @@ export class DragContext extends PubSubEvent {
       originY: 0,
       currentX: 0,
       currentY: 0,
-
-      dragTarget: dragTarget || dragHandler,
 
       // drag zone
       accRange: { x: [Infinity * -1, Infinity], y: [Infinity * -1, Infinity] },
@@ -72,7 +72,10 @@ export class DragContext extends PubSubEvent {
   }
 }
 
-function makeDraggable(dragHandler: HTMLElement, dragTarget?: HTMLElement) {
+function makeDraggable(
+  dragHandler: HTMLElement,
+  options: DraggableCorOptions = {}
+) {
   // check if the dom is already draggable
   const oldId = dragHandler.getAttribute(DRAGGABLE_FLAG);
   if (oldId && ContextPool[oldId]) {
@@ -82,7 +85,7 @@ function makeDraggable(dragHandler: HTMLElement, dragTarget?: HTMLElement) {
   }
 
   // generate drage context
-  const context = new DragContext(dragHandler, dragTarget);
+  const context = new DragContext(dragHandler, options);
   const id = window.crypto.randomUUID();
 
   context.dragHandler.setAttribute(DRAGGABLE_FLAG, id);
@@ -113,20 +116,29 @@ function onMouseDown(e: MouseEvent) {
 
 function onMouseMove(e: MouseEvent) {
   if (currentContext) {
+    const { disable_x_axis, disable_y_axis } = currentContext.options;
+
+    if (disable_x_axis && disable_y_axis) {
+      return;
+    }
+
     const dragData = currentContext.state;
     dragData.currentX = e.clientX;
     dragData.currentY = e.clientY;
+    const xChange = dragData.currentX !== dragData.originX;
+    const yChange = dragData.currentY !== dragData.originY;
 
     if (
-      !dragData.dragging &&
-      (dragData.currentX !== dragData.originX ||
-        dragData.currentY !== dragData.originY)
+      (disable_x_axis && yChange) ||
+      (disable_y_axis && xChange) ||
+      (!disable_x_axis && !disable_y_axis && (xChange || yChange))
     ) {
-      dragData.dragging = true;
-      currentContext.emit("dragStart", e);
+      if (!dragData.dragging) {
+        dragData.dragging = true;
+        currentContext.emit("dragStart", e);
+      }
+      currentContext.emit("dragging", e);
     }
-
-    currentContext.emit("dragging", e);
   }
 }
 

@@ -3,23 +3,32 @@ import { createDragDom } from "./util";
 import type { DraggableOptions } from "./type";
 
 function draggable(dom: HTMLElement, options: DraggableOptions = {}) {
-  // get dragHandler
-  let dragHandler = dom;
-  if (options.dragHandler) {
-    if (typeof options.dragHandler === "string") {
-      dragHandler = dom.querySelector(options.dragHandler) || dom;
-    } else if (options.dragHandler instanceof HTMLElement) {
-      dragHandler = options.dragHandler;
+  const {
+    dragHandler,
+    dragZone,
+    useSubstitute,
+    substituteClass,
+    holdPosition,
+    ...coreOptions
+  } = options;
+
+  // get dragHandlerDom
+  let dragHandlerDom = dom;
+  if (dragHandler) {
+    if (typeof dragHandler === "string") {
+      dragHandlerDom = dom.querySelector(dragHandler) || dom;
+    } else if (dragHandler instanceof HTMLElement) {
+      dragHandlerDom = dragHandler;
     }
   }
 
-  const handler = makeDraggable(dragHandler, dom);
+  const handler = makeDraggable(dragHandlerDom, coreOptions);
 
   if (handler) {
-    if (options.dragZone) {
+    if (dragZone) {
       handler.on("beforeDrag", (context) => {
         const originRect = dom.getBoundingClientRect();
-        const zoneRect = options.dragZone?.getBoundingClientRect();
+        const zoneRect = dragZone?.getBoundingClientRect();
 
         if (zoneRect) {
           context.accRange = {
@@ -35,25 +44,27 @@ function draggable(dom: HTMLElement, options: DraggableOptions = {}) {
         }
       });
     }
-    if (options.useSubstitute) {
-      handler.on("beforeDrag", (context) => {
+    if (useSubstitute) {
+      handler.on("beforeDrag", () => {
         const substitute = createDragDom(dom);
         substitute.style.visibility = "hidden";
 
-        if (options.substituteClass) {
-          substitute.className = options.substituteClass;
+        if (substituteClass) {
+          substitute.className = substituteClass;
         }
-        context.dragTarget = substitute;
+        return { dragTarget: substitute };
       });
 
       handler.on("dragStart", (context) => {
-        context.dragTarget.style.visibility = "visible";
+        (context.dragTarget as HTMLElement).style.visibility = "visible";
       });
       handler.on("dragEnd", (context) => {
-        context.dragTarget.parentNode?.removeChild(context.dragTarget);
+        (context.dragTarget as HTMLElement).parentNode?.removeChild(
+          context.dragTarget as HTMLElement
+        );
       });
     }
-    if (options.holdPosition) {
+    if (holdPosition) {
       handler.on("beforeDrag", (context) => {
         return {
           originTranslateX: context["currentTranslateX"] ?? 0,
@@ -81,17 +92,19 @@ function draggable(dom: HTMLElement, options: DraggableOptions = {}) {
         Math.max(context.accRange.y[0], context.currentY - context.originY)
       );
 
-      if (options.holdPosition) {
+      if (holdPosition) {
         accX = context["currentTranslateX"] =
           (context["originTranslateX"] as number) + accX;
         accY = context["currentTranslateY"] =
           (context["originTranslateY"] as number) + accY;
       }
-      context.dragTarget.style.transform = `translate(${accX}px, ${accY}px)`;
+      (
+        (context.dragTarget as HTMLElement | undefined) || dom
+      ).style.transform = `translate(${accX}px, ${accY}px)`;
     });
 
     return handler;
   }
 }
 
-export { draggable };
+export default draggable;
