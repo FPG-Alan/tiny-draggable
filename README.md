@@ -1,3 +1,5 @@
+![build](https://github.com/FPG-Alan/tiny-draggable>/actions/workflows/build/badge.svg)
+
 # Tiny Draggable
 
 Make dom draggable via mouse events, with small file size and simple to use.
