@@ -74,7 +74,7 @@ export class DragContext extends PubSubEvent {
 
 function makeDraggable(
   dragHandler: HTMLElement,
-  options: DraggableCorOptions = {}
+  options: DraggableCorOptions = { axis: "both" }
 ) {
   // check if the dom is already draggable
   const oldId = dragHandler.getAttribute(DRAGGABLE_FLAG);
@@ -116,9 +116,9 @@ function onMouseDown(e: MouseEvent) {
 
 function onMouseMove(e: MouseEvent) {
   if (currentContext) {
-    const { disable_x_axis, disable_y_axis } = currentContext.options;
+    const axis = currentContext.options;
 
-    if (disable_x_axis && disable_y_axis) {
+    if (axis === "none") {
       return;
     }
 
@@ -129,9 +129,9 @@ function onMouseMove(e: MouseEvent) {
     const yChange = dragData.currentY !== dragData.originY;
 
     if (
-      (disable_x_axis && yChange) ||
-      (disable_y_axis && xChange) ||
-      (!disable_x_axis && !disable_y_axis && (xChange || yChange))
+      (axis === "x" && xChange) ||
+      (axis === "y" && yChange) ||
+      (axis === "both" && (xChange || yChange))
     ) {
       if (!dragData.dragging) {
         dragData.dragging = true;

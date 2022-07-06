@@ -12,13 +12,9 @@ export type DragData = {
 
 export type DraggableCorOptions = {
   /**
-   * disable drag on X axis
+   * response to dragging on each axis
    */
-  disable_x_axis?: boolean;
-  /**
-   * disable drag on Y axis
-   */
-  disable_y_axis?: boolean;
+  axis?: "both" | "x" | "y" | "none";
 };
 export type DraggableOptions = DraggableCorOptions & {
   /**
