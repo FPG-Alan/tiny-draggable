@@ -1,4 +1,4 @@
-![build](https://github.com/FPG-Alan/tiny-draggable>/actions/workflows/build/badge.svg)
+![build](https://github.com/FPG-Alan/tiny-draggable/actions/workflows/build/badge.svg)
 
 # Tiny Draggable
 
