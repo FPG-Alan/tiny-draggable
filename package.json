@@ -1,10 +1,13 @@
 {
   "name": "tiny-draggable",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "make dom draggable",
   "main": "dist/tiny-draggable.js",
   "module": "dist/tiny-draggable.mjs",
   "typings": "dist/tiny-draggable.d.ts",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "prepare": "husky install",
     "clean": "rimraf dist",
@@ -23,7 +26,11 @@
     }
   },
   "keywords": [],
-  "author": "Alan Yang",
+  "author": "Alan Yang <theyy.me@gmail.com> (https://github.com/FPG-Alan)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FPG-Alan/tiny-draggable.git"
+  },
   "license": "MIT",
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
