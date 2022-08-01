@@ -92,7 +92,7 @@ function makeDraggable(
   ContextPool[id] = context;
 
   // bind event
-  context.dragHandler.addEventListener("mousedown", onMouseDown);
+  context.dragHandler.addEventListener("mousedown", onMouseDown, true);
 
   return ContextPool[id];
 }
