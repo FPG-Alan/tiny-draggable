@@ -127,7 +127,7 @@ describe("tiny-draggable:core", () => {
   test("options - axis - y", () => {
     const dom = document.createElement("div");
     const mockDragging = jest.fn(() => {});
-    const context = makeDraggable(dom, { axis: "x" });
+    const context = makeDraggable(dom, { axis: "y" });
     if (context) {
       context.on("dragging", mockDragging);
 
@@ -139,6 +139,30 @@ describe("tiny-draggable:core", () => {
       );
 
       expect(mockDragging).not.toHaveBeenCalled();
+    }
+  });
+
+  test("options - debounce", () => {
+    const dom = document.createElement("div");
+    const mockDragging = jest.fn(() => {});
+    const context = makeDraggable(dom, { debounce: 5 });
+    if (context) {
+      context.on("dragging", mockDragging);
+
+      dom.dispatchEvent(
+        new MouseEvent("mousedown", { clientX: 0, clientY: 0 })
+      );
+      window.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 0, clientY: 5 })
+      );
+
+      expect(mockDragging).not.toHaveBeenCalled();
+
+      window.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 0, clientY: 15 })
+      );
+
+      expect(mockDragging).toHaveBeenCalled();
     }
   });
 

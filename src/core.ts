@@ -74,7 +74,7 @@ export class DragContext extends PubSubEvent {
 
 function makeDraggable(
   dragHandler: HTMLElement,
-  options: DraggableCorOptions = { axis: "both" }
+  options: DraggableCorOptions = { axis: "both", debounce: 0 }
 ) {
   // check if the dom is already draggable
   const oldId = dragHandler.getAttribute(DRAGGABLE_FLAG);
@@ -116,28 +116,35 @@ function onMouseDown(e: MouseEvent) {
 
 function onMouseMove(e: MouseEvent) {
   if (currentContext) {
-    const axis = currentContext.options;
+    const axis = currentContext.options.axis || "both";
+    let debounce = currentContext.options.debounce || 0;
 
     if (axis === "none") {
       return;
     }
 
+    if (!(typeof debounce === "number" && !isNaN(debounce))) {
+      // debounce is not a number
+      debounce = 0;
+    }
+
     const dragData = currentContext.state;
     dragData.currentX = e.clientX;
     dragData.currentY = e.clientY;
-    const xChange = dragData.currentX !== dragData.originX;
-    const yChange = dragData.currentY !== dragData.originY;
-
+    const xChange = Math.abs(dragData.currentX - dragData.originX);
+    const yChange = Math.abs(dragData.currentY - dragData.originY);
     if (
-      (axis === "x" && xChange) ||
-      (axis === "y" && yChange) ||
-      (axis === "both" && (xChange || yChange))
+      (axis === "x" && xChange > 0) ||
+      (axis === "y" && yChange > 0) ||
+      (axis === "both" && (xChange > 0 || yChange > 0))
     ) {
-      if (!dragData.dragging) {
-        dragData.dragging = true;
-        currentContext.emit("dragStart", e);
+      if (xChange > debounce || yChange > debounce) {
+        if (!dragData.dragging) {
+          dragData.dragging = true;
+          currentContext.emit("dragStart", e);
+        }
+        currentContext.emit("dragging", e);
       }
-      currentContext.emit("dragging", e);
     }
   }
 }

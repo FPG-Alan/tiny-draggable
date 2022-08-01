@@ -22,26 +22,31 @@ describe("tiny-draggable:draggable", () => {
   test("options - dragZone", () => {
     const dom = document.createElement("div");
     const container = document.createElement("div");
-    container.style.position = "relative";
-    container.style.width = "500px";
-    container.style.height = "500px";
     container.appendChild(dom);
-
+    jest.spyOn(container, "getBoundingClientRect").mockImplementation(() => {
+      return {
+        x: 0,
+        y: 0,
+        bottom: 500,
+        height: 500,
+        left: 0,
+        right: 500,
+        top: 0,
+        width: 500,
+      } as DOMRect;
+    });
     const context = draggable(dom, { dragZone: container });
-
     const mockOnDragging = jest.fn(() => {});
 
     if (context) {
       context.on("dragging", mockOnDragging);
-
       dom.dispatchEvent(
         new MouseEvent("mousedown", { clientX: 0, clientY: 0 })
       );
       window.dispatchEvent(
         new MouseEvent("mousemove", { clientX: 600, clientY: 600 })
       );
-
-      expect(mockOnDragging).not.toHaveBeenCalled();
+      expect(dom.style.transform).toEqual("translate(500px, 500px)");
     }
   });
 });

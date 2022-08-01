@@ -15,6 +15,11 @@ export type DraggableCorOptions = {
    * response to dragging on each axis
    */
   axis?: "both" | "x" | "y" | "none";
+
+  /**
+   * will not trigger drag behavior whthin the debounce value range
+   */
+  debounce?: number;
 };
 export type DraggableOptions = DraggableCorOptions & {
   /**

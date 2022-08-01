@@ -29,6 +29,10 @@ draggable(dom);
    */
   axis?: "both" | "x" | "y" | "none";
   /**
+   * will not trigger drag behavior whthin the debounce value range
+   */
+  debounce?: number;
+  /**
    * specific [dom / dom class name] which bind the drag event
    * dragHandler need be child of draggable dom
    */
@@ -158,5 +162,4 @@ pnpm run dev
 
 ```
 pnpm run test
-
 ```
