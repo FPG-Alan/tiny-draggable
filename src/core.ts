@@ -46,6 +46,9 @@ export class DragContext extends PubSubEvent {
   public emit(eventName: DragEvent, e: MouseEvent) {
     const result = super.emit(eventName, this.state, e);
 
+    if (typeof result === "boolean") {
+      return result;
+    }
     if (result) {
       delete result.dragging;
       delete result.originX;
@@ -58,9 +61,9 @@ export class DragContext extends PubSubEvent {
         ...this.state,
         ...result,
       };
-    }
 
-    return result;
+      return result;
+    }
   }
 
   public destroy(): void {
@@ -75,10 +78,13 @@ export class DragContext extends PubSubEvent {
   private onMouseDown(e: MouseEvent) {
     this.state.currentX = this.state.originX = e.clientX;
     this.state.currentY = this.state.originY = e.clientY;
-    this.emit("beforeDrag", e);
-    document.getElementsByTagName("body")[0].style.userSelect = "none";
-    window.addEventListener("mousemove", this.mouseMoveHandler);
-    window.addEventListener("mouseup", this.mouseUpHandler);
+    const result = this.emit("beforeDrag", e);
+    // stop a drag by return false on beforeDrag event
+    if (typeof result !== "boolean" || result) {
+      document.getElementsByTagName("body")[0].style.userSelect = "none";
+      window.addEventListener("mousemove", this.mouseMoveHandler);
+      window.addEventListener("mouseup", this.mouseUpHandler);
+    }
   }
 
   private onMouseMove(e: MouseEvent) {

@@ -19,11 +19,13 @@ export function createDragDom(sourceDom: HTMLElement): HTMLElement {
 
 export class PubSubEvent {
   private eventMap: {
-    [key: string]: Array<(...args: any[]) => Record<string, unknown> | void>;
+    [key: string]: Array<
+      (...args: any[]) => Record<string, unknown> | boolean | void
+    >;
   } = {};
   public on(
     eventName: string,
-    callback: (...args: any[]) => Record<string, unknown> | void
+    callback: (...args: any[]) => Record<string, unknown> | boolean | void
   ) {
     if (!this.eventMap[eventName]) {
       this.eventMap[eventName] = [];
@@ -33,15 +35,19 @@ export class PubSubEvent {
 
   public emit(eventName: string, ...args: any[]) {
     if (this.eventMap[eventName]) {
-      let result: Record<string, unknown> = {};
+      let result: Record<string, unknown> | boolean = {};
       this.eventMap[eventName].forEach((callback) => {
         const r = callback(...args);
-        if (r) {
+        if (typeof result === "object" && typeof r === "object" && r) {
           result = { ...result, ...r };
+        }
+
+        if (typeof r === "boolean") {
+          result = r;
         }
       });
 
-      return result;
+      return result as Record<string, unknown> | boolean;
     }
   }
 
