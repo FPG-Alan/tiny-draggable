@@ -1,4 +1,4 @@
-import type { DragData, DraggableCorOptions } from "./type";
+import type { DragData, DraggableCoreOptions } from "./type";
 import { PubSubEvent } from "./util";
 
 export const DRAGGABLE_FLAG = "tiny-draggable";
@@ -9,19 +9,23 @@ export type DragCallback = (
   e: MouseEvent
 ) => Record<string, unknown> | void;
 
-const ContextPool: Record<string, DragContext> = {};
-
-let currentContext: DragContext | null = null;
-
 export class DragContext extends PubSubEvent {
-  public options: DraggableCorOptions;
+  public options: DraggableCoreOptions;
   public state: DragData;
   public dragHandler: HTMLElement;
 
-  constructor(dragHandler: HTMLElement, options: DraggableCorOptions) {
+  public mouseDownHandler;
+  public mouseMoveHandler;
+  public mouseUpHandler;
+
+  constructor(dragHandler: HTMLElement, options: DraggableCoreOptions) {
     super();
     this.options = options;
     this.dragHandler = dragHandler;
+
+    this.mouseDownHandler = this.onMouseDown.bind(this);
+    this.mouseMoveHandler = this.onMouseMove.bind(this);
+    this.mouseUpHandler = this.onMouseUp.bind(this);
 
     this.state = {
       dragging: false,
@@ -62,62 +66,24 @@ export class DragContext extends PubSubEvent {
   public destroy(): void {
     console.log("destroy drag context");
     this.off();
-    const poolId = this.dragHandler.getAttribute(DRAGGABLE_FLAG);
-
-    if (poolId) {
-      delete ContextPool[poolId];
-      this.dragHandler.removeEventListener("mousedown", onMouseDown);
-      this.dragHandler.removeAttribute(DRAGGABLE_FLAG);
-    }
-  }
-}
-
-function makeDraggable(
-  dragHandler: HTMLElement,
-  options: DraggableCorOptions = { axis: "both", debounce: 0 }
-) {
-  // check if the dom is already draggable
-  const oldId = dragHandler.getAttribute(DRAGGABLE_FLAG);
-  if (oldId && ContextPool[oldId]) {
-    console.log(`the dom had been proceed as draggable.`);
-
-    return;
+    this.dragHandler.removeEventListener("mousedown", this.mouseDownHandler);
+    window.removeEventListener("mousemove", this.mouseMoveHandler);
+    window.removeEventListener("mouseup", this.mouseUpHandler);
+    this.dragHandler.removeAttribute(DRAGGABLE_FLAG);
   }
 
-  // generate drage context
-  const context = new DragContext(dragHandler, options);
-  const id = window.crypto.randomUUID();
-
-  context.dragHandler.setAttribute(DRAGGABLE_FLAG, id);
-  ContextPool[id] = context;
-
-  // bind event
-  context.dragHandler.addEventListener("mousedown", onMouseDown, true);
-
-  return ContextPool[id];
-}
-
-function onMouseDown(e: MouseEvent) {
-  if (e.currentTarget instanceof Element) {
-    const target = e.currentTarget as HTMLElement;
-    const context = ContextPool[target.getAttribute(DRAGGABLE_FLAG) || ""];
-    if (context) {
-      // get the correspond context
-      context.state.currentX = context.state.originX = e.clientX;
-      context.state.currentY = context.state.originY = e.clientY;
-      context.emit("beforeDrag", e);
-      currentContext = context;
-      document.getElementsByTagName("body")[0].style.userSelect = "none";
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-    }
+  private onMouseDown(e: MouseEvent) {
+    this.state.currentX = this.state.originX = e.clientX;
+    this.state.currentY = this.state.originY = e.clientY;
+    this.emit("beforeDrag", e);
+    document.getElementsByTagName("body")[0].style.userSelect = "none";
+    window.addEventListener("mousemove", this.mouseMoveHandler);
+    window.addEventListener("mouseup", this.mouseUpHandler);
   }
-}
 
-function onMouseMove(e: MouseEvent) {
-  if (currentContext) {
-    const axis = currentContext.options.axis || "both";
-    let debounce = currentContext.options.debounce || 0;
+  private onMouseMove(e: MouseEvent) {
+    const axis = this.options.axis || "both";
+    let debounce = this.options.debounce || 0;
 
     if (axis === "none") {
       return;
@@ -128,7 +94,7 @@ function onMouseMove(e: MouseEvent) {
       debounce = 0;
     }
 
-    const dragData = currentContext.state;
+    const dragData = this.state;
     dragData.currentX = e.clientX;
     dragData.currentY = e.clientY;
     const xChange = Math.abs(dragData.currentX - dragData.originX);
@@ -141,27 +107,58 @@ function onMouseMove(e: MouseEvent) {
       if (xChange > debounce || yChange > debounce) {
         if (!dragData.dragging) {
           dragData.dragging = true;
-          currentContext.emit("dragStart", e);
+          this.emit("dragStart", e);
         }
-        currentContext.emit("dragging", e);
+        this.emit("dragging", e);
       }
     }
   }
+
+  private onMouseUp(e: MouseEvent) {
+    window.removeEventListener("mousemove", this.mouseMoveHandler);
+    window.removeEventListener("mouseup", this.mouseUpHandler);
+    document.getElementsByTagName("body")[0].style.userSelect = "auto";
+    if (!this.state.dragging) {
+      this.emit("click", e);
+    }
+    this.emit("dragEnd", e);
+
+    this.state.dragging = false;
+  }
 }
 
-function onMouseUp(e: MouseEvent) {
-  window.removeEventListener("mousemove", onMouseMove);
-  window.removeEventListener("mouseup", onMouseUp);
-  document.getElementsByTagName("body")[0].style.userSelect = "auto";
-  if (currentContext) {
-    if (!currentContext.state.dragging) {
-      currentContext.emit("click", e);
-    }
-    currentContext.emit("dragEnd", e);
+const DEFAULT_OPTIONS: DraggableCoreOptions = {
+  axis: "both",
+  debounce: 0,
+  useCapturing: true,
+};
+function makeDraggable(
+  dragHandler: HTMLElement,
+  _options?: DraggableCoreOptions
+) {
+  const options = { ...DEFAULT_OPTIONS, ...(_options || {}) };
+  // check if the dom is already draggable
+  const oldId = dragHandler.getAttribute(DRAGGABLE_FLAG);
+  if (oldId) {
+    console.log(`the dom had been proceed as draggable.`);
 
-    currentContext.state.dragging = false;
-    currentContext = null;
+    return;
   }
+
+  // generate drage context
+  const context = new DragContext(dragHandler, options);
+  const id = window.crypto.randomUUID();
+
+  context.dragHandler.setAttribute(DRAGGABLE_FLAG, id);
+
+  // bind event
+  context.dragHandler.addEventListener(
+    "mousedown",
+    context.mouseDownHandler,
+    !!options.useCapturing
+  );
+
+  return context;
 }
 
 export { makeDraggable };

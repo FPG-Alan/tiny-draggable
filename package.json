@@ -1,6 +1,6 @@
 {
   "name": "tiny-draggable",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "make dom draggable",
   "main": "dist/tiny-draggable.js",
   "module": "dist/tiny-draggable.mjs",

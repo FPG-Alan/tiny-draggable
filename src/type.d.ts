@@ -10,7 +10,7 @@ export type DragData = {
   [key: string]: unknown;
 };
 
-export type DraggableCorOptions = {
+export type DraggableCoreOptions = {
   /**
    * response to dragging on each axis
    */
@@ -20,8 +20,13 @@ export type DraggableCorOptions = {
    * will not trigger drag behavior whthin the debounce value range
    */
   debounce?: number;
+
+  /**
+   * use capturing
+   */
+  useCapturing?: true;
 };
-export type DraggableOptions = DraggableCorOptions & {
+export type DraggableOptions = DraggableCoreOptions & {
   /**
    * specific [dom / dom class name] which bind the drag event
    * dragHandler need be child of draggable dom
