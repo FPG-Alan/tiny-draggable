@@ -22,9 +22,9 @@ export type DraggableCoreOptions = {
   debounce?: number;
 
   /**
-   * use capturing
+   * use capturing on mousedown event listener
    */
-  useCapturing?: true;
+  useCapturing?: boolean;
 };
 export type DraggableOptions = DraggableCoreOptions & {
   /**

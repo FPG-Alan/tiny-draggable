@@ -33,6 +33,10 @@ draggable(dom);
    */
   debounce?: number;
   /**
+   * use capturing on mousedown event listener
+   */
+  useCapturing?: boolean;
+  /**
    * specific [dom / dom class name] which bind the drag event
    * dragHandler need be child of draggable dom
    */
